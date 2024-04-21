@@ -16,23 +16,31 @@ namespace ProductMarket.Test
     public class RoleControllerTest
     {
         Random rand = new Random();
-        //[Fact]
-        //public async Task AddUserRoleTest()
-        //{
-        //    var httpClient = new HttpClient();
-        //    var userRole = new UserRole()
-        //    {
-        //        UserId = 6,
-        //        RoleId = 2,
-        //    };
-        //    var result = await httpClient.PostAsJsonAsync("https://localhost:7147/api/v1/Role/AddUserRole", userRole);
-        //    var data = result.Content.ReadFromJsonAsync<BaseResult<UserRoleDto>>();
-        //    var q = (int?)HttpStatusCode.OK;
-        //    var e = (int?)result.StatusCode;
-        //    Assert.Equal((int?)HttpStatusCode.OK, (int?)result.StatusCode);
-        //    Assert.NotNull(data);
-        //    Assert.IsType<BaseResult<UserRoleDto>>(data?.Result);
-        //}
+        [Fact]
+        public async Task AddUserRoleTest()
+        {
+            var httpClient = new HttpClient();
+            var userRole = new UserRole()
+            {
+                UserId = 6,
+                RoleId = 2,
+            };
+            var result = await httpClient.PostAsJsonAsync("https://localhost:7147/api/v1/Role/AddUserRole", userRole);
+            var data = result.Content.ReadFromJsonAsync<BaseResult<UserRoleDto>>();
+            var q = (int?)HttpStatusCode.OK;
+            var e = (int?)result.StatusCode;
+            Assert.Equal((int?)HttpStatusCode.OK, (int?)result.StatusCode);
+            Assert.NotNull(data);
+            Assert.IsType<BaseResult<UserRoleDto>>(data?.Result);
+
+            var resultNew = await httpClient.DeleteAsync
+                ($"https://localhost:7147/api/v1/Role/DeleteUserRole/{data.Result.Data.Login}/{data.Result.Data.RoleName}" );
+            var dataNew = resultNew.Content.ReadFromJsonAsync<BaseResult<UserRoleDto>>();
+            var qw = (int?)HttpStatusCode.OK;
+            var ew = (int?)result.StatusCode;
+            Assert.Equal((int?)HttpStatusCode.OK, (int?)resultNew.StatusCode);
+            Assert.NotNull(dataNew);
+        }
         [Fact]
         public async Task AddRoleTest()
         {
