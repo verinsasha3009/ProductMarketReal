@@ -193,6 +193,10 @@
     <value>UserRegistrationUnexpectedError</value>
     <comment>UserRegistrationUnexpectedError</comment>
   </data>
+  <data name="UserRoleNotFound" xml:space="preserve">
+    <value>UserRoleNotFound</value>
+    <comment>UserRoleNotFound</comment>
+  </data>
   <data name="UserTokenCreationError" xml:space="preserve">
     <value>UserTokenCreationError</value>
     <comment>UserTokenCreationError</comment>

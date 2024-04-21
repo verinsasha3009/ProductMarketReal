@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ProductMarket.Domain.Resources.Errors;
+using ProductMarket.Domain.Enum.Errors;
 using ProductMarket.Domain.Dto.Product;
 using ProductMarket.Domain.Entity;
-using ProductMarket.Domain.Enum.Errors;
 using ProductMarket.Domain.Interfaces.Repository;
 using ProductMarket.Domain.Interfaces.Services;
 using ProductMarket.Domain.Result;
@@ -13,6 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ProductMarket.Domain.Dto.ProductCart;
+using ProductMarket.Application.Resources.Errors;
 
 namespace ProductMarket.Domain.Services
 {
@@ -30,9 +31,9 @@ namespace ProductMarket.Domain.Services
             _cartRepository = cartRepository;
         }
 
-        public async Task<BaseResult<ProductDto>> AddCartProductAsync(int userId, int productId)
+        public async Task<BaseResult<ProductDto>> AddCartProductAsync(ProductCartDto dto)
         {
-            var user = await _userRepository.GetAll().Include(p=>p.Cart).ThenInclude(p=>p.Products).FirstOrDefaultAsync(p=>p.Id == userId);
+            var user = await _userRepository.GetAll().Include(p=>p.Cart).ThenInclude(p=>p.Products).FirstOrDefaultAsync(p=>p.Id == dto.userId);
             if (user == null)
             {
                 return new BaseResult<ProductDto>()
@@ -41,7 +42,7 @@ namespace ProductMarket.Domain.Services
                     ErrorMessage = ErrorMessage.UserNotFound
                 };
             }
-            var product = await _productRepository.GetAll().FirstOrDefaultAsync(p=>p.Id == productId);
+            var product = await _productRepository.GetAll().FirstOrDefaultAsync(p=>p.Id == dto.prodId);
             if(product == null)
             {
                 return new BaseResult<ProductDto>()

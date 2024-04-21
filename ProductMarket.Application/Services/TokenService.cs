@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using ProductMarket.Domain.Resources.Errors;
 using ProductMarket.Domain.Dto;
 using ProductMarket.Domain.Entity;
 using ProductMarket.Domain.Enum.Errors;
@@ -13,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using ProductMarket.Application.Resources.Errors;
 
 namespace ProductMarket.Domain.Services
 {

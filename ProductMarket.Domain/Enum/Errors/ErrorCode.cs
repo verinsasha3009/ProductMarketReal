@@ -27,6 +27,7 @@ namespace ProductMarket.Domain.Enum.Errors
         UserAlreadyExists=24,
         PasswordsDontMatch = 25,
         UserTokenCreationError=26,
+        UserTokenUpdateError=27,
 
         InternalServerError =44,
 
@@ -34,6 +35,7 @@ namespace ProductMarket.Domain.Enum.Errors
 
         RoleHasAlreadyBeenAdded =60,
         RoleAlreadyExists=61,
-        RoleNotFound=62
+        RoleNotFound=62,
+        UserRoleNotFound =63
     }
 }

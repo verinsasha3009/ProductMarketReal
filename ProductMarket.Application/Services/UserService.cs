@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductMarket.Domain.Resources.Errors;
 using ProductMarket.Domain.Dto;
 using ProductMarket.Domain.Dto.User;
 using ProductMarket.Domain.Entity;
@@ -11,6 +10,8 @@ using Serilog;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using AutoMapper;
+using ProductMarket.Application.Resources.Errors;
 
 namespace ProductMarket.Domain.Services
 {
@@ -19,11 +20,14 @@ namespace ProductMarket.Domain.Services
         private readonly IBaseRepository<User> _userRepository;
         private readonly IBaseRepository<UserToken> _tokenRepository;
         private readonly IUserTokenService _tokenService;
-        public UserService(IBaseRepository<User> userRepository,IUserTokenService tokenService,IBaseRepository<UserToken> tokenReopository)
+        private readonly IMapper _mapper;
+        public UserService(IBaseRepository<User> userRepository,IUserTokenService tokenService
+            ,IBaseRepository<UserToken> tokenReopository,IMapper mapper)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;
             _tokenRepository = tokenReopository;
+            _mapper = mapper;
         }
         public async Task<BaseResult<TokenDto>> LoginUserAsync(UserDto dto)
         {
@@ -87,7 +91,8 @@ namespace ProductMarket.Domain.Services
                 {
                     return new BaseResult<TokenDto>()
                     {
-                        ErrorMessage=ErrorMessage.UserTokenUpdateError
+                        ErrorMessage=ErrorMessage.UserTokenUpdateError,
+                        ErrorCode = (int)ErrorCode.UserTokenUpdateError
                     };
                 }
             }
@@ -132,7 +137,7 @@ namespace ProductMarket.Domain.Services
                 await _userRepository.CreateAsync(user);
                 return new BaseResult<UserDto>()
                 {
-                     Data = new UserDto(dto.Login,dto.Password)
+                     Data = _mapper.Map<UserDto>(user),
                 };
             }
             catch (Exception ex)

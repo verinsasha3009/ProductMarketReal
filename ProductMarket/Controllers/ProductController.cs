@@ -37,7 +37,7 @@ namespace ProductMarket.Presentation.Controllers
             return BadRequest(i);
         }
         /// <summary>
-        /// Считать все продукты у пользователя
+        /// Считывание всех продуктов у пользователя
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>

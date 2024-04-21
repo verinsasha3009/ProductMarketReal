@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ProductMarket.Domain.Resources.Errors {
+namespace ProductMarket.Application.Resources.Errors {
     using System;
     
     
@@ -228,6 +228,15 @@ namespace ProductMarket.Domain.Resources.Errors {
         public static string UserRegistrationUnexpectedError {
             get {
                 return ResourceManager.GetString("UserRegistrationUnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UserRoleNotFound.
+        /// </summary>
+        public static string UserRoleNotFound {
+            get {
+                return ResourceManager.GetString("UserRoleNotFound", resourceCulture);
             }
         }
         
