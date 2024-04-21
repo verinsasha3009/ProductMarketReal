@@ -7,6 +7,7 @@ using ProductMarket.Domain.Entity;
 using ProductMarket.Domain.Interfaces.Repository;
 using ProductMarket.Domain.Interfaces.Services;
 using ProductMarket.Domain.Interfaces.Validation;
+using ProductMarket.Application.Mapping;
 
 namespace ProductMarket.Domain.DependencyInjection
 {
@@ -15,6 +16,8 @@ namespace ProductMarket.Domain.DependencyInjection
         public static void AddApplication(this IServiceCollection services)
         {
             services.AddAutoMapper(typeof(ProductMapping));
+            services.AddAutoMapper(typeof(RoleMapping));
+            services.AddAutoMapper(typeof(UserMapping));
             Initialize(services);
         }
         public static void Initialize(this IServiceCollection services)

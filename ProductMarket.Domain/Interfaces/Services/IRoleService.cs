@@ -12,6 +12,6 @@ namespace ProductMarket.Domain.Interfaces.Services
        public Task<BaseResult<RoleDto>> DeleteRoleAsync(int roleId);
        public Task<BaseResult<UserRoleDto>>AddUserRoleAsync(UserRole dto);
        public Task<BaseResult<UserRoleDto>> UpdateUserRoleAsync(UpdateUserRoleDto dto);
-       public Task<BaseResult<UserRoleDto>> DeleteUserRoleAsync(UserRoleDto dto);
+       public Task<BaseResult<UserRoleDto>> DeleteUserRoleAsync(string Login, string RoleName);
     }
 }

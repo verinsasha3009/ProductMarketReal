@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductMarket.Domain.Resources.Errors;
-using ProductMarket.DAL.Repository;
 using ProductMarket.Domain.Dto.Role;
 using ProductMarket.Domain.Dto.UserRole;
 using ProductMarket.Domain.Entity;
@@ -8,12 +6,9 @@ using ProductMarket.Domain.Enum.Errors;
 using ProductMarket.Domain.Interfaces.Services;
 using ProductMarket.Domain.Interfaces.Validation;
 using ProductMarket.Domain.Result;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ProductMarket.Domain.Interfaces.Repository;
+using AutoMapper;
+using ProductMarket.Application.Resources.Errors;
 
 namespace ProductMarket.Domain.Services
 {
@@ -23,13 +18,15 @@ namespace ProductMarket.Domain.Services
         private readonly IBaseRepository<User> _userRepository;
         private readonly IBaseRepository<UserRole> _userRoleRepository;
         private readonly IRoleValidation _roleValidation;
+        private readonly IMapper _mapper;
         public RoleService(IBaseRepository<Role> roleRepository, IBaseRepository<User> userRepository,
-            IBaseRepository<UserRole> userRoleRepository,IRoleValidation roleValidation)
+            IBaseRepository<UserRole> userRoleRepository,IRoleValidation roleValidation,IMapper mapper)
         {
             _roleRepository = roleRepository;
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
             _roleValidation = roleValidation;
+            _mapper = mapper;
         }
         public async Task<BaseResult<RoleDto>> CreateRoleAsync(CreateRoleDto dto)
         {
@@ -49,7 +46,7 @@ namespace ProductMarket.Domain.Services
             await _roleRepository.CreateAsync(role);
             return new BaseResult<RoleDto>() 
             {
-                Data=new RoleDto(role.Id,role.Name)
+                Data=_mapper.Map<RoleDto>(role)
             };
         }
         public async Task<BaseResult<UserRoleDto>> AddUserRoleAsync(UserRole dto)
@@ -99,14 +96,14 @@ namespace ProductMarket.Domain.Services
             _roleRepository.Remove(role);
             return new BaseResult<RoleDto>()
             {
-                Data = new RoleDto(role.Id, role.Name)
+                Data = _mapper.Map<RoleDto>(role)
             };
         }
 
-        public async Task<BaseResult<UserRoleDto>> DeleteUserRoleAsync(UserRoleDto dto)
+        public async Task<BaseResult<UserRoleDto>> DeleteUserRoleAsync(string Login, string RoleName)
         {
-            var role = await _roleRepository.GetAll().FirstOrDefaultAsync(p=>p.Name == dto.RoleName);
-            var user = await _userRepository.GetAll().Include(p=>p.Roles).FirstOrDefaultAsync(p => p.Login == dto.Login);
+            var role = await _roleRepository.GetAll().FirstOrDefaultAsync(p=>p.Name == RoleName);
+            var user = await _userRepository.GetAll().Include(p=>p.Roles).FirstOrDefaultAsync(p => p.Login == Login);
             var result = _roleValidation.Validate(user, role);
             if(!result.IsSucces)
             {
@@ -117,11 +114,19 @@ namespace ProductMarket.Domain.Services
                 };
             }
             var userRole = await _userRoleRepository.GetAll().Where(p=>p.UserId == user.Id).FirstOrDefaultAsync(p => p.RoleId == role.Id);
+            if(userRole == null)
+            {
+                return new BaseResult<UserRoleDto>()
+                {
+                    ErrorCode = (int)ErrorCode.UserRoleNotFound,
+                    ErrorMessage = ErrorMessage.UserRoleNotFound,
+                };
+            }
             _userRoleRepository.Remove(userRole);
             await _userRoleRepository.SaveChangesAsync();
             return new BaseResult<UserRoleDto>()
             {
-                Data= new UserRoleDto(dto.Login,dto.RoleName)
+                Data= new UserRoleDto(Login,RoleName)
             };
         }
 
@@ -143,7 +148,7 @@ namespace ProductMarket.Domain.Services
 
             return new BaseResult<RoleDto>()
             {
-                Data = new RoleDto(role.Id, role.Name)
+                Data = _mapper.Map<RoleDto>(role)
             };
         }
 
@@ -181,9 +186,7 @@ namespace ProductMarket.Domain.Services
             //        var userRole = await _unitOFWork.UserRoles.GetAll()
             //        .Where(p => p.RoleId == dto.RoleNameId)
             //        .FirstOrDefaultAsync(p => p.UserId == user.Id);
-
             //        userRole.RoleId = dto.NewRoleNameId;
-
             //        _unitOFWork.UserRoles.Update(userRole);
             //        await _unitOFWork.SaveChangesAsync();
             //        var newUserRole = new UserRole()
@@ -194,13 +197,11 @@ namespace ProductMarket.Domain.Services
             //        await _unitOFWork.UserRoles.CreateAsync(newUserRole);
             //        await _unitOFWork.SaveChangesAsync();
             //        await transaction.CommitAsync();
-
             //    }
             //    catch (Exception ex)
             //    {
             //        await transaction.RollbackAsync();
             //    }
-
             //}
             return new BaseResult<UserRoleDto>()
             {

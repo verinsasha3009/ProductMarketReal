@@ -75,16 +75,17 @@ namespace ProductMarket.Presentation.Controllers
             return BadRequest(i);
         }
         /// <summary>
-        /// Удаление роли у пользователя
+        /// 
         /// </summary>
-        /// <param name="dto"></param>
+        /// <param name="Login"></param>
+        /// <param name="RoleName"></param>
         /// <returns></returns>
-        [HttpDelete("DeleteUserRole")]
+        [HttpDelete("DeleteUserRole/{Login}/{RoleName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<BaseResult<UserRoleDto>>> DeleteUserRoleAsync([FromBody]UserRoleDto dto)
+        public async Task<ActionResult<BaseResult<UserRoleDto>>> DeleteUserRoleAsync( string Login, string RoleName)
         {
-            var i = await _roleService.DeleteUserRoleAsync(dto);
+            var i = await _roleService.DeleteUserRoleAsync(Login,RoleName);
             if (i.IsSucces)
             {
                 return Ok(i);

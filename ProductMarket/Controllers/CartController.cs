@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using ProductMarket.Domain.Dto.Product;
+using ProductMarket.Domain.Dto.ProductCart;
 using ProductMarket.Domain.Interfaces.Services;
 using ProductMarket.Domain.Result;
 
@@ -23,12 +24,12 @@ namespace ProductMarket.Presentation.Controllers
         /// <param name="userId"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpGet("{userId}/{id}")]
+        [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<BaseResult<ProductDto>>> AddProductInCart(int userId,int id)
+        public async Task<ActionResult<BaseResult<ProductDto>>> AddProductInCart(ProductCartDto dto)
         {
-            var i = await _productCartService.AddCartProductAsync(userId,id);
+            var i = await _productCartService.AddCartProductAsync(dto);
             if (i.IsSucces)
             {
                 return Ok(i);
