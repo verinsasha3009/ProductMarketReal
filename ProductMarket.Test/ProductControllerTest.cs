@@ -19,6 +19,9 @@ using Microsoft.AspNetCore.Mvc;
 using ProductMarket.Domain.Dto.ProductCart;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using ProductMarket.Application.Mapping;
+using ProductMarket.Domain.Mapping;
 namespace ProductMarket.Test
 {
     public class ProductControllerTest
@@ -34,14 +37,18 @@ namespace ProductMarket.Test
             var DbContext = new ApplicationDbContext(options);
             var repositoryMockProduct = new BaseRepository<Product>(DbContext);
             var repositoryMockUser = new BaseRepository<User>(DbContext);
-            var mapper = new Mock<IMapper>();
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new ProductMapping());
+            });
+            IMapper mapper = mappingConfig.CreateMapper();
             var validation = new ProductValidation();
             var opts = Options.Create<MemoryDistributedCacheOptions>(new MemoryDistributedCacheOptions());
             IDistributedCache distrCache = new MemoryDistributedCache(opts);
             var cache = new RedisCacheService(distrCache);
             var logger = new Mock<ILogger>();
             IProductService prodService = new ProductService(repositoryMockProduct
-                , repositoryMockUser, mapper.Object,validation,cache,logger.Object);
+                , repositoryMockUser, mapper,validation,cache,logger.Object);
             _controller = new(prodService);
         }
         Random random = new Random();
@@ -58,13 +65,23 @@ namespace ProductMarket.Test
         [Fact]
         public async Task CreateTestProduct()
         {
-            var dto = new CreateProductDto($"Test_Product_{random.Next(123342)}","Test_Description");
+            var dto = new CreateProductDto($"Test_Product_{random.Next(1233427)}","Test_Description");
             _controller.ModelState.AddModelError("FirstName", "Required");
             var result = await _controller.CreateProduct(dto);
             var actionResult = Assert
             .IsType<ActionResult<BaseResult<ProductDto>>>(result);
             var badRequestResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            Assert.IsType<BaseResult<ProductDto>>(badRequestResult.Value);
+            var Data = Assert.IsType<BaseResult<ProductDto>>(badRequestResult.Value);
+
+            Assert.NotNull(Data);
+
+            int ptodId = (int)Data.Data.Id;
+            _controller.ModelState.AddModelError("FirstName", "Required");
+            var resultDelete = await _controller.DeleteProduct(ptodId);
+            var actionResultDelete = Assert
+            .IsType<ActionResult<BaseResult<ProductDto>>>(resultDelete);
+            var badRequestResultDelete = Assert.IsType<OkObjectResult>(actionResultDelete.Result);
+            Assert.IsType<BaseResult<ProductDto>>(badRequestResultDelete.Value);
         }
         [Fact]
         public async Task UpdateTestProduct()
@@ -85,18 +102,9 @@ namespace ProductMarket.Test
             var actionResult = Assert
             .IsType<ActionResult<CollectResult<Product>>>(result);
             var badRequestResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            Assert.IsType<CollectResult<Product>>(badRequestResult.Value);
+            var Data = Assert.IsType<CollectResult<Product>>(badRequestResult.Value);
+            
         }
-        [Fact]
-        public async Task DeleteTestProduct()
-        {
-            //var dto = new CreateProductDto($"Test_Product_{random.Next(123342)}", "Test_Description");
-            _controller.ModelState.AddModelError("FirstName", "Required");
-            var result = await _controller.DeleteProduct(3);
-            var actionResult = Assert
-            .IsType<ActionResult<BaseResult<ProductDto>>>(result);
-            var badRequestResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            Assert.IsType<BaseResult<ProductDto>>(badRequestResult.Value);
-        }
+        
     }
 }

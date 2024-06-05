@@ -9,6 +9,7 @@ using ProductMarket.Domain.Dto.ProductCart;
 using ProductMarket.Domain.Entity;
 using ProductMarket.Domain.Interfaces.Repository;
 using ProductMarket.Domain.Interfaces.Services;
+using ProductMarket.Domain.Mapping;
 using ProductMarket.Domain.Result;
 using ProductMarket.Domain.Services;
 using ProductMarket.Presentation.Controllers;
@@ -31,32 +32,32 @@ namespace ProductMarket.Test
             var repositoryMockUser = new BaseRepository<User>(DbContext);
             var repositoryMockCart = new BaseRepository<Cart>(DbContext);
             var repositoryMockProductCart= new BaseRepository<CartProduct>(DbContext);
-            var mapper = new Mock<IMapper>();
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new ProductMapping());
+            });
+            IMapper mapper = mappingConfig.CreateMapper();
             IProductCartService cartService = new ProductCartService(repositoryMockProduct
-                ,repositoryMockUser,mapper.Object
+                ,repositoryMockUser,mapper
                 ,repositoryMockCart,repositoryMockProductCart);
             CartController = new(cartService);
         }
         [Fact]
         public async Task AddProductInCart()
         {
-            var dto = new ProductCartDto(1, 1);
+            var dto = new ProductCartDto(4, 1);
             CartController.ModelState.AddModelError("FirstName", "Required");
             var result = await CartController.AddProductInCart(dto);
             var actionResult = Assert
             .IsType<ActionResult<BaseResult<ProductDto>>>(result);
             var badRequestResult = Assert.IsType<OkObjectResult>(actionResult.Result);
             Assert.IsType<BaseResult<ProductDto>>(badRequestResult.Value);
-        }
-        [Fact]
-        public async Task DeleteProductInCart()
-        {
-            CartController.ModelState.AddModelError("FirstName", "Required");
-            var result = await CartController.RemoveProductInCart(1, 1);
-            var actionResult = Assert
-            .IsType<ActionResult<BaseResult<ProductDto>>>(result);
-            var badRequestResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            Assert.IsType<BaseResult<ProductDto>>(badRequestResult.Value);
+        
+            var resultDelete = await CartController.RemoveProductInCart(1, 4);
+            var actionResultDelete = Assert
+            .IsType<ActionResult<BaseResult<ProductDto>>>(resultDelete);
+            var badRequestResultDelete = Assert.IsType<OkObjectResult>(actionResultDelete.Result);
+            Assert.IsType<BaseResult<ProductDto>>(badRequestResultDelete.Value);
         }
     }
 }
