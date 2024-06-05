@@ -24,6 +24,7 @@ namespace ProductMarket.DAL.DependencyInjection
         }
         public static void Interseptor(this IServiceCollection services)
         {
+            services.AddScoped<IBaseRepository<CartProduct>,BaseRepository<CartProduct>>();
             services.AddScoped<IBaseRepository<Product>, BaseRepository<Product>>();
             services.AddScoped<IBaseRepository<Image>, BaseRepository<Image>>();
             services.AddScoped<IBaseRepository<User>, BaseRepository<User>>();

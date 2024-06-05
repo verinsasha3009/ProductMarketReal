@@ -14,6 +14,14 @@ namespace ProductMarket.DAL.Configuration
         public void Configure(EntityTypeBuilder<Cart> builder)
         {
             builder.Property(x => x.Id).ValueGeneratedOnAdd();
+            builder.HasData(new List<Cart>
+            {
+                new Cart
+                {
+                    Id = 1,
+                    UserId = 1,
+                }
+            });
         }
     }
 }

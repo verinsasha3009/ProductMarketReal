@@ -124,6 +124,15 @@ namespace ProductMarket.Application.Resources.Errors {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ProductInCartAlreadyExists.
+        /// </summary>
+        public static string ProductInCartAlreadyExists {
+            get {
+                return ResourceManager.GetString("ProductInCartAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ProductIsNotFound.
         /// </summary>
         public static string ProductIsNotFound {

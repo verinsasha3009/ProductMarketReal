@@ -15,6 +15,15 @@ namespace ProductMarket.DAL.Configuration
         {
             builder.Property(p => p.Id).ValueGeneratedOnAdd();
             builder.Property(p => p.Name).IsRequired().HasMaxLength(50);
+            builder.HasData(new List<Role>()
+            {
+                new Role() { Id = 1,
+                   Name= "User"
+                },
+                new Role() { Id = 2,
+                   Name = "Admin"
+                }
+            });
         }
     }
 }

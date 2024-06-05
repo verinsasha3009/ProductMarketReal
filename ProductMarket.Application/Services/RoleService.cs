@@ -176,33 +176,16 @@ namespace ProductMarket.Domain.Services
                 };
             }
             var userRole = await _userRoleRepository.GetAll().Where(p => p.UserId == dto.UserId).FirstOrDefaultAsync(p => p.RoleId == dto.RoleNameId);
-            userRole.RoleId = role.Id;
-            _userRoleRepository.Update(userRole);
+            
+            _userRoleRepository.Remove(userRole);
             await _userRoleRepository.SaveChangesAsync();
-            //using (var transaction = await _unitOFWork.BeginTransitionAsync())
-            //{
-            //    try
-            //    {
-            //        var userRole = await _unitOFWork.UserRoles.GetAll()
-            //        .Where(p => p.RoleId == dto.RoleNameId)
-            //        .FirstOrDefaultAsync(p => p.UserId == user.Id);
-            //        userRole.RoleId = dto.NewRoleNameId;
-            //        _unitOFWork.UserRoles.Update(userRole);
-            //        await _unitOFWork.SaveChangesAsync();
-            //        var newUserRole = new UserRole()
-            //        {
-            //            UserId = user.Id,
-            //            RoleId = dto.NewRoleNameId,
-            //        };
-            //        await _unitOFWork.UserRoles.CreateAsync(newUserRole);
-            //        await _unitOFWork.SaveChangesAsync();
-            //        await transaction.CommitAsync();
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        await transaction.RollbackAsync();
-            //    }
-            //}
+
+            userRole = new UserRole()
+            {
+                UserId = dto.UserId,
+                RoleId = role.Id
+            };
+            await _userRoleRepository.CreateAsync(userRole);
             return new BaseResult<UserRoleDto>()
             {
                 Data = new UserRoleDto(user.Login, role.Name)

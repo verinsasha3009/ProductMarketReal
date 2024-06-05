@@ -19,16 +19,18 @@ namespace ProductMarket.Domain.Services
 {
     public class ProductCartService : IProductCartService
     {
+        private readonly IBaseRepository<CartProduct> _productCartRepository;
         private readonly IBaseRepository<Product> _productRepository;
         private readonly IBaseRepository<User> _userRepository;
         private readonly IBaseRepository<Cart> _cartRepository;
         private readonly IMapper _mapper;
         public ProductCartService(IBaseRepository<Product> productRepository,IBaseRepository<User> userrepository,IMapper mapper
-            ,IBaseRepository<Cart> cartRepository) { 
+            ,IBaseRepository<Cart> cartRepository,IBaseRepository<CartProduct> ProductCartRepository) { 
             _productRepository= productRepository;
             _userRepository = userrepository;
             _mapper = mapper;
             _cartRepository = cartRepository;
+            _productCartRepository = ProductCartRepository;
         }
 
         public async Task<BaseResult<ProductDto>> AddCartProductAsync(ProductCartDto dto)
@@ -51,24 +53,32 @@ namespace ProductMarket.Domain.Services
                     ErrorMessage = ErrorMessage.ProductIsNotFound
                 };
             }
+            var cart = await _cartRepository.GetAll().FirstOrDefaultAsync(p=>p.UserId == dto.userId);
+            if (cart == null)
+            {
+                return new BaseResult<ProductDto>()
+                {
+                    ErrorMessage = ErrorMessage.СartNotFoundError,
+                    ErrorCode = (int)ErrorCode.СartNotFoundError
+                };
+            }
+            var productCart = await _productCartRepository.GetAll().Where(p=>p.CartId == cart.Id).FirstOrDefaultAsync(p=>p.ProductId == dto.prodId);
+            if(productCart != null)
+            {
+                return new BaseResult<ProductDto>
+                {
+                    ErrorCode = (int)ErrorCode.ProductInCartAlreadyExists,
+                    ErrorMessage = ErrorMessage.ProductInCartAlreadyExists
+                };
+            }
             try
             {
-                ProductIdentityCart(user);
-                var cart = await _cartRepository.GetAll().FirstOrDefaultAsync(p=>p.Id == user.Cart.Id);
-                
-                if (cart== null)
+                productCart = new CartProduct()
                 {
-                    return new BaseResult<ProductDto>()
-                    {
-                        ErrorMessage = ErrorMessage.СartNotFoundError,
-                        ErrorCode = (int)ErrorCode.СartNotFoundError
-                    };
-                }
-                cart.Products.Add(product);
-                user.Cart = cart;
-                _userRepository.Update(user);
-                await _userRepository.SaveChangesAsync();
-
+                    CartId = cart.Id,
+                    ProductId = dto.prodId,
+                };
+                await _productCartRepository.CreateAsync(productCart);
                 return new BaseResult<ProductDto>()
                 {
                     Data = _mapper.Map<ProductDto>(product)
@@ -83,18 +93,8 @@ namespace ProductMarket.Domain.Services
                 };
             }
         }
-
         public async Task<BaseResult<ProductDto>> RemoveCartProductAsync(int userId, int productId)
         {
-            var user = await _userRepository.GetAll().Include(p=>p.Cart).FirstOrDefaultAsync(p => p.Id == userId);
-            if (user == null)
-            {
-                return new BaseResult<ProductDto>()
-                {
-                    ErrorCode = (int)ErrorCode.UserNotFound,
-                    ErrorMessage = ErrorMessage.UserNotFound
-                };
-            }
             var product = await _productRepository.GetAll().FirstOrDefaultAsync(p => p.Id == productId);
             if (product == null)
             {
@@ -106,10 +106,7 @@ namespace ProductMarket.Domain.Services
             }
             try
             {
-
-                ProductIdentityCart(user);
-                var cart = await _cartRepository.GetAll().Include(p=>p.Products).FirstOrDefaultAsync(p => p.Id == user.Cart.Id);
-
+                var cart = await _cartRepository.GetAll().Include(p=>p.Products).FirstOrDefaultAsync(p => p.UserId == userId);
                 if (cart == null)
                 {
                     return new BaseResult<ProductDto>()
@@ -118,19 +115,9 @@ namespace ProductMarket.Domain.Services
                         ErrorCode = (int)ErrorCode.СartNotFoundError
                     };
                 }
-                var productDelete = cart.Products.FirstOrDefault(p=>p.Id ==productId);
-                if (productDelete == null)
-                {
-                    return new BaseResult<ProductDto>()
-                    {
-                        ErrorCode = (int)ErrorCode.ProductDeleteError,
-                        ErrorMessage = ErrorMessage.ProductDeleteError
-                    };
-                }
-                cart.Products.Remove(product);
-                user.Cart = cart;
-                _userRepository.Update(user);
-                await _userRepository.SaveChangesAsync();
+                var cartProduct = await _productCartRepository.GetAll().Where(p=>p.CartId == cart.Id).FirstOrDefaultAsync(p=>p.ProductId == productId);
+                _productCartRepository.Remove(cartProduct);
+                await _productCartRepository.SaveChangesAsync();
                 return new BaseResult<ProductDto>()
                 {
                     Data = _mapper.Map<ProductDto>(product)
@@ -143,17 +130,6 @@ namespace ProductMarket.Domain.Services
                     ErrorCode = (int)ErrorCode.RemoveCartProductError,
                     ErrorMessage = ErrorMessage.RemoveCartProductError
                 };
-            }
-        }
-        public void ProductIdentityCart(User user)
-        {
-            if (user.Cart == null)
-            {
-                user.Cart = new Cart();
-            }
-            if (user.Cart.Products == null)
-            {
-                user.Cart.Products = new List<Product>();
             }
         }
     }

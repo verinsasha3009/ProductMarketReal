@@ -19,6 +19,7 @@ namespace ProductMarket.Domain.Enum.Errors
         ProductNotDetected = 14,
         ProductUnexpectedError = 15,
         ProductAlreadyExists = 16,
+        ProductInCartAlreadyExists = 17,
 
         UserUnauthorizedAccess = 20,
         UserNotFound = 21,
@@ -36,6 +37,6 @@ namespace ProductMarket.Domain.Enum.Errors
         RoleHasAlreadyBeenAdded =60,
         RoleAlreadyExists=61,
         RoleNotFound=62,
-        UserRoleNotFound =63
+        UserRoleNotFound =63,
     }
 }

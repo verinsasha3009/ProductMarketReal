@@ -145,6 +145,10 @@
     <value>ProductErrorCreate</value>
     <comment>ProductErrorCreate</comment>
   </data>
+  <data name="ProductInCartAlreadyExists" xml:space="preserve">
+    <value>ProductInCartAlreadyExists</value>
+    <comment>ProductInCartAlreadyExists</comment>
+  </data>
   <data name="ProductIsNotFound" xml:space="preserve">
     <value>ProductIsNotFound</value>
     <comment>ProductIsNotFound</comment>
