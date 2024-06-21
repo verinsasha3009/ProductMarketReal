@@ -40,14 +40,14 @@ namespace ProductMarket.Presentation.Controllers
         /// Удаление продукта из корзины пользователя
         /// </summary>
         /// <param name="userId"></param>
-        /// <param name="id"></param>
+        /// <param name="prodId"></param>
         /// <returns></returns>
         [HttpDelete("{userId}/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<BaseResult<ProductDto>>> RemoveProductInCart(int userId, int id)
+        public async Task<ActionResult<BaseResult<ProductDto>>> RemoveProductInCart(int userId, int prodId)
         {
-            var i = await _productCartService.RemoveCartProductAsync(userId, id);
+            var i = await _productCartService.RemoveCartProductAsync(userId, prodId);
             if (i.IsSucces)
             {
                 return Ok(i);

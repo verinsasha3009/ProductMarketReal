@@ -22,7 +22,13 @@ namespace ProductMarket.DAL.Configuration
                 p => p.HasOne<User>().WithMany().HasForeignKey(p => p.UserId));
 
             //builder.Property(p => p.Cart).IsRequired();
-
+            builder.HasData(new List<User>
+            {
+                new User { Id = 1,
+                    Login ="aaaaa",
+                    Password ="aaaaaaa",
+                }
+            });
         }
     }
 }

@@ -11,6 +11,7 @@ namespace ProductMarket.DAL
             //Database.EnsureDeleted();
             Database.EnsureCreated();
         }
+        
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.AddInterceptors(new DateInterseptor());

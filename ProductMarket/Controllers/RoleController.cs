@@ -48,7 +48,7 @@ namespace ProductMarket.Presentation.Controllers
         [HttpPost("AddNewRole")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<BaseResult<UserRoleDto>>> AddRoleAsync([FromBody] CreateRoleDto dto)
+        public async Task<ActionResult<BaseResult<RoleDto>>> AddRoleAsync([FromBody] CreateRoleDto dto)
         {
             var i = await _roleService.CreateRoleAsync(dto);
             if (i.IsSucces)
@@ -65,7 +65,7 @@ namespace ProductMarket.Presentation.Controllers
         [HttpDelete("DeleteRole/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<BaseResult<UserRoleDto>>> DeleteRoleAsync(int id)
+        public async Task<ActionResult<BaseResult<RoleDto>>> DeleteRoleAsync(int id)
         {
             var i = await _roleService.DeleteRoleAsync(id);
             if (i.IsSucces)
@@ -100,7 +100,7 @@ namespace ProductMarket.Presentation.Controllers
         [HttpPut("UpdateRole")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<BaseResult<UserRoleDto>>> UpdateRoleAsync(RoleDto dto)
+        public async Task<ActionResult<BaseResult<RoleDto>>> UpdateRoleAsync(RoleDto dto)
         {
             var i = await _roleService.UpdateRoleAsync(dto);
             if (i.IsSucces)

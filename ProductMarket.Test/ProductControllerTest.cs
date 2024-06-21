@@ -3,86 +3,108 @@ using System.Net.Http.Json;
 using ProductMarket.Domain.Result;
 using ProductMarket.Domain.Dto.Product;
 using ProductMarket.Domain.Entity;
+using ProductMarket.Domain.Interfaces.Repository;
+using ProductMarket.Presentation.Controllers;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using ProductMarket.DAL.Repository;
+using ProductMarket.DAL;
+using ProductMarket.Domain.Interfaces.Services;
+using ProductMarket.Domain.Services;
+using ProductMarket.Domain.Validation;
+using Microsoft.Extensions.Caching.Distributed;
+using Serilog;
+using Microsoft.AspNetCore.Mvc;
+using ProductMarket.Domain.Dto.ProductCart;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using ProductMarket.Application.Mapping;
+using ProductMarket.Domain.Mapping;
 namespace ProductMarket.Test
 {
     public class ProductControllerTest
     {
+        private readonly ProductController _controller;
+        public ProductControllerTest()
+        {
+            
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseNpgsql("Server=localhost;Port=5432;Database=ProductMarket.Tests;User Id=postgres;Password=qwerpoiu")
+                //.UseSnakeCaseNamingConvention()
+                .Options;
+            var DbContext = new ApplicationDbContext(options);
+            var repositoryMockProduct = new BaseRepository<Product>(DbContext);
+            var repositoryMockUser = new BaseRepository<User>(DbContext);
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new ProductMapping());
+            });
+            IMapper mapper = mappingConfig.CreateMapper();
+            var validation = new ProductValidation();
+            var opts = Options.Create<MemoryDistributedCacheOptions>(new MemoryDistributedCacheOptions());
+            IDistributedCache distrCache = new MemoryDistributedCache(opts);
+            var cache = new RedisCacheService(distrCache);
+            var logger = new Mock<ILogger>();
+            IProductService prodService = new ProductService(repositoryMockProduct
+                , repositoryMockUser, mapper,validation,cache,logger.Object);
+            _controller = new(prodService);
+        }
         Random random = new Random();
         [Fact]
         public async Task GetTestProduct()
         {
-            int Id = 2;
-            HttpClient httpClient = new HttpClient();
-            var result = await httpClient.GetAsync($"https://localhost:7147/api/v1/Product/{Id}");
-            var data = result.Content.ReadFromJsonAsync<BaseResult<ProductDto>>();
-
-            Assert.Equal((int?)HttpStatusCode.OK, (int?)result.StatusCode);
-            Assert.NotNull(data);
-            Assert.IsType<BaseResult<ProductDto>>(data?.Result);
+            _controller.ModelState.AddModelError("FirstName", "Required");
+            var result = await _controller.GetProduct(2);
+            var actionResult = Assert
+            .IsType<ActionResult<BaseResult<ProductDto>>>(result);
+            var badRequestResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            Assert.IsType<BaseResult<ProductDto>>(badRequestResult.Value);
         }
         [Fact]
         public async Task CreateTestProduct()
         {
-            HttpClient httpClient = new HttpClient();
-            var prod = new CreateProductDto($"#NameProduct{random.Next(121211)}Test3", "#DescriptionProductTest");
-            var result = await httpClient.PostAsJsonAsync("https://localhost:7147/api/v1/Product/Create", prod);
-            var data = result.Content.ReadFromJsonAsync<BaseResult<ProductDto>>();
+            var dto = new CreateProductDto($"Test_Product_{random.Next(1233427)}","Test_Description");
+            _controller.ModelState.AddModelError("FirstName", "Required");
+            var result = await _controller.CreateProduct(dto);
+            var actionResult = Assert
+            .IsType<ActionResult<BaseResult<ProductDto>>>(result);
+            var badRequestResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var Data = Assert.IsType<BaseResult<ProductDto>>(badRequestResult.Value);
 
-            Assert.Equal((int?)HttpStatusCode.OK, (int?)result.StatusCode);
-            Assert.NotNull(data);
-            Assert.IsType<BaseResult<ProductDto>>(data?.Result);
+            Assert.NotNull(Data);
 
-            await httpClient.DeleteAsync($"https://localhost:7147/api/v1/Product/Delete/{data.Result.Data.Id}");
+            int ptodId = (int)Data.Data.Id;
+            _controller.ModelState.AddModelError("FirstName", "Required");
+            var resultDelete = await _controller.DeleteProduct(ptodId);
+            var actionResultDelete = Assert
+            .IsType<ActionResult<BaseResult<ProductDto>>>(resultDelete);
+            var badRequestResultDelete = Assert.IsType<OkObjectResult>(actionResultDelete.Result);
+            Assert.IsType<BaseResult<ProductDto>>(badRequestResultDelete.Value);
         }
         [Fact]
         public async Task UpdateTestProduct()
         {
-            HttpClient httpClient = new HttpClient();
-            var prod2 = new CreateProductDto($"#NameProduct{random.Next(121211)}Test3", "#DescriptionProductTest");
-            var result2 = await httpClient.PostAsJsonAsync("https://localhost:7147/api/v1/Product/Create", prod2);
-            var data2 = result2.Content.ReadFromJsonAsync<BaseResult<ProductDto>>();
-
-            Assert.Equal((int?)HttpStatusCode.OK, (int?)result2.StatusCode);
-            Assert.NotNull(data2);
-
-            var prodUpdate = new UpdateProductDto(data2.Result.Data.Id, $"NewProduct{random.Next(12129)}Test", ";;;;;l;;;;;;;;");
-            var result = await httpClient.PutAsJsonAsync($"https://localhost:7147/api/v1/Product", prodUpdate);
-            var data = result.Content.ReadFromJsonAsync<BaseResult<ProductDto>>();
-
-            Assert.Equal((int?)HttpStatusCode.OK, (int?)result.StatusCode);
-            Assert.NotNull(data);
-            Assert.IsType<BaseResult<ProductDto>>(data?.Result);
-
-            await httpClient.DeleteAsync($"https://localhost:7147/api/v1/Product/Delete/{data.Result.Data.Id}");
+            var dto = new UpdateProductDto(2,$"Test_Product_{random.Next(123342)}", "Test_Description");
+            _controller.ModelState.AddModelError("FirstName", "Required");
+            var result = await _controller.UpdateProduct(dto);
+            var actionResult = Assert
+            .IsType<ActionResult<BaseResult<ProductDto>>>(result);
+            var badRequestResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            Assert.IsType<BaseResult<ProductDto>>(badRequestResult.Value);
         }
         [Fact]
         public async Task GetAllProductTest()
         {
-            var httpClient = new HttpClient();
-            var result = await httpClient.GetAsync($"https://localhost:7147/api/v1/Product/GetAll/2");
-            var data = result.Content.ReadFromJsonAsync<CollectResult<Product>>();
-
-            Assert.Equal((int?)HttpStatusCode.OK, (int?)result.StatusCode);
-            Assert.NotNull(data);
-            Assert.IsType<CollectResult<Product>>(data?.Result);
+            _controller.ModelState.AddModelError("FirstName", "Required");
+            var result = await _controller.GetAll(1);
+            var actionResult = Assert
+            .IsType<ActionResult<CollectResult<Product>>>(result);
+            var badRequestResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var Data = Assert.IsType<CollectResult<Product>>(badRequestResult.Value);
+            
         }
-        [Fact]
-        public async Task DeleteTestProduct()
-        {
-            var httpClient = new HttpClient();
-            var prod2 = new CreateProductDto($"#NameProduct{random.Next(121211)}Test3", "#DescriptionProductTest");
-            var result2 = await httpClient.PostAsJsonAsync("https://localhost:7147/api/v1/Product/Create", prod2);
-            var data2 = result2.Content.ReadFromJsonAsync<BaseResult<ProductDto>>();
-
-            Assert.Equal((int?)HttpStatusCode.OK, (int?)result2.StatusCode);
-            Assert.NotNull(data2);
-
-            var result = await httpClient.DeleteAsync($"https://localhost:7147/api/v1/Product/Delete/{data2.Result.Data.Id}");
-            var data = result.Content.ReadFromJsonAsync<BaseResult<ProductDto>>();
-
-            Assert.Equal((int?)HttpStatusCode.OK, (int?)result.StatusCode);
-            Assert.NotNull(data);
-            Assert.IsType<BaseResult<ProductDto>>(data?.Result);
-        }
+        
     }
 }
